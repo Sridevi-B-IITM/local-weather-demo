@@ -1,26 +1,20 @@
-# City Weather (Open‑Meteo)
+# Overview
+A lightweight weather dashboard that shows current conditions and a 3-day forecast. It supports searching by city or using your current location. Temperatures can be toggled between Celsius and Fahrenheit, and small weather icons are displayed.
 
-## Overview
-A minimal single-page app that fetches the current temperature and humidity for any city using the Open‑Meteo public APIs (Geocoding + Forecast). Built with Bootstrap 5 and requires no API keys or server.
+Data: Open-Meteo Forecast and Geocoding APIs (no API key required).
 
-## Setup
-- No build steps needed.
-- Open index.html in a modern web browser.
+# Setup
+- Download the repo (or save the provided index.html).
+- Open index.html in any modern browser.
 
-## Usage
-- Enter a city name (e.g., "London", "New York", "Paris, FR") and click "Get Weather".
-- The app geocodes the city and displays:
-  - Temperature in °C
-  - Relative humidity in %
-- Data courtesy of Open‑Meteo. Availability may vary by location.
+# Usage
+- Search: Enter a city name and click Search.
+- My Location: Click the 📍 button to use browser geolocation.
+- Units: Toggle between °C and °F using the unit switch.
+- View: See current weather at the top and a 3-day forecast below.
 
-## License
-MIT License
-
-Copyright (c) 2025
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# Improvements (Round 2)
+- Added a 3-day forecast below the current weather section.
+- Implemented a Celsius/Fahrenheit toggle that updates all temperatures.
+- Displayed small weather icons for current and forecast conditions.
+- Kept styling consistent with the original dashboard.
