@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>City Weather (Open-Meteo)</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f7f7fb; }
+    .card { box-shadow: 0 6px 24px rgba(0,0,0,0.06); }
+    .muted { color: #6c757d; }
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-7">
+        <h1 class="mb-4 text-center">Current Weather</h1>
+        <div class="card mb-3">
+          <div class="card-body">
+            <label for="cityInput" class="form-label">City name</label>
+            <div class="input-group">
+              <input type="text" id="cityInput" class="form-control" placeholder="e.g., London, New York, Tokyo" aria-label="City name">
+              <button id="fetchBtn" class="btn btn-primary" type="button">
+                <span class="btn-text">Get Weather</span>
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              </button>
+            </div>
+            <div id="alertBox" class="alert alert-danger mt-3 d-none" role="alert"></div>
+          </div>
+        </div>
+
+        <div id="resultCard" class="card d-none">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 id="locationTitle" class="card-title mb-0"></h5>
+              <span id="observedAt" class="badge text-bg-light"></span>
+            </div>
+            <p id="locationSub" class="card-subtitle mb-3 text-muted"></p>
+            <div class="row text-center">
+              <div class="col-6 mb-3">
+                <div class="display-6" id="tempValue">--</div>
+                <div class="muted">Temperature (°C)</div>
+              </div>
+              <div class="col-6 mb-3">
+                <div class="display-6" id="humValue">--</div>
+                <div class="muted">Humidity (%)</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer text-muted small">
+            Data by Open‑Meteo (no API key required)
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const cityInput = document.getElementById('cityInput');
+    const fetchBtn = document.getElementById('fetchBtn');
+    const btnText = fetchBtn.querySelector('.btn-text');
+    const btnSpinner = fetchBtn.querySelector('.spinner-border');
+    const alertBox = document.getElementById('alertBox');
+    const resultCard = document.getElementById('resultCard');
+
+    const locationTitle = document.getElementById('locationTitle');
+    const locationSub = document.getElementById('locationSub');
+    const observedAt = document.getElementById('observedAt');
+    const tempValue = document.getElementById('tempValue');
+    const humValue = document.getElementById('humValue');
+
+    function showAlert(msg) {
+      alertBox.textContent = msg;
+      alertBox.classList.remove('d-none');
+    }
+    function clearAlert() {
+      alertBox.classList.add('d-none');
+      alertBox.textContent = '';
+    }
+    function setLoading(isLoading) {
+      fetchBtn.disabled = isLoading;
+      btnSpinner.classList.toggle('d-none', !isLoading);
+      btnText.textContent = isLoading ? 'Fetching…' : 'Get Weather';
+    }
+    function countryFlagEmoji(cc) {
+      if (!cc || cc.length !== 2) return '';
+      const A = 127462; // 'A' regional indicator
+      return String.fromCodePoint(...cc.toUpperCase().split('').map(c => A + (c.charCodeAt(0) - 65)));
+    }
+
+    async function fetchWeatherForCity(city) {
+      if (!city || !city.trim()) {
+        showAlert('Please enter a city name.');
+        return;
+      }
+      clearAlert();
+      setLoading(true);
+      resultCard.classList.add('d-none');
+
+      try {
+        // Geocode city to coordinates
+        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
+        const geoResp = await fetch(geoUrl);
+        if (!geoResp.ok) throw new Error('Failed to look up city.');
+        const geoData = await geoResp.json();
+        if (!geoData.results || geoData.results.length === 0) {
+          throw new Error('City not found. Try a more specific name (e.g., "Paris, FR").');
+        }
+        const place = geoData.results[0];
+        const { latitude, longitude, name, country, country_code, admin1 } = place;
+
+        // Fetch current temperature and humidity
+        const wxUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m&timezone=auto`;
+        const wxResp = await fetch(wxUrl);
+        if (!wxResp.ok) throw new Error('Failed to fetch weather data.');
+        const wxData = await wxResp.json();
+
+        const current = wxData.current || {};
+        const temperature = current.temperature_2m;
+        const humidity = current.relative_humidity_2m;
+        const time = current.time;
+
+        if (typeof temperature === 'undefined' || typeof humidity === 'undefined') {
+          throw new Error('Weather data unavailable for this location.');
+        }
+
+        // Update UI
+        const flag = countryFlagEmoji(country_code);
+        locationTitle.textContent = `${name}${flag ? ' ' + flag : ''}`;
+        const subParts = [admin1, country].filter(Boolean);
+        locationSub.textContent = subParts.join(', ');
+        tempValue.textContent = `${Math.round(temperature * 10) / 10}°`;
+        humValue.textContent = `${Math.round(humidity)}%`;
+        observedAt.textContent = time ? `As of ${new Date(time).toLocaleString()}` : '';
+
+        resultCard.classList.remove('d-none');
+      } catch (err) {
+        showAlert(err.message || 'Something went wrong.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchBtn.addEventListener('click', () => fetchWeatherForCity(cityInput.value));
+    cityInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') fetchWeatherForCity(cityInput.value);
+    });
+  </script>
+</body>
+</html>
